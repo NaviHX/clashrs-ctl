@@ -4,6 +4,7 @@ pub mod rule;
 
 use async_trait::async_trait;
 use rule::{ClashRule, RuleList};
+use config::{ClashConfig, ClashConfigGet};
 use tokio;
 
 macro_rules! fn_set_field {
@@ -102,26 +103,8 @@ impl ClashRequestBuilder {
     field_setters![ip, port, secret];
     request_builders![
         // proxy, ClashProxy;
-        // config, ClashConfig;
+        config, ClashConfig;
         rule, ClashRule
     ];
 }
 
-#[cfg(test)]
-mod tests {
-    /// please start a clash server on port 9090
-
-    use super::*;
-    #[test]
-    fn test_get_rule() {
-        let req = ClashRequestBuilder::new().rule().send();
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(async move {
-                let RuleList(rule) = req.await.unwrap();
-                println!("{}", rule);
-            })
-    }
-}

@@ -65,3 +65,16 @@ impl From<String> for RuleList {
         Self(s)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    /// please start a clash server on port 9090
+
+    use super::*;
+    #[tokio::test]
+    async fn test_get_rule() {
+        let req = ClashRequestBuilder::new().rule().send();
+                let RuleList(rule) = req.await.unwrap();
+                // println!("{}", rule);
+    }
+}
