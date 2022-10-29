@@ -12,8 +12,17 @@ a simple tool to manage clash
 |`/proxies/:name`|`GET`|get the information of proxy `name`|x|
 |`/proxies/:name/delay`|`GET`|get the delay of proxy `name`|x|
 |`/proxies/:name`|`POST`|change the selected proxy|x|
-|`/configs`|`GET`|get the current configuration|WIP|
-|`/configs`|`PATCH`|change the configuration incrementally|WIP|
-|`/configs`|`PUT`|reload the configuration|WIP|
-|`/rules`|`GET`|get the rules|WIP|
+|`/configs`|`GET`|get the current configuration|o|
+|`/configs`|`PATCH`|change the configuration incrementally|o|
+|`/configs`|`PUT`|reload the configuration|o|
+|`/rules`|`GET`|get the rules|o|
+
+# Todo
+
+1. `rules` api support: o
+2. `configs` api support: o
+3. `proxies` api support: x
+4. `logs` api support: x
+5. `trafic` api support: x
+6. CLI: x
 
