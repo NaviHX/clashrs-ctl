@@ -4,6 +4,8 @@ use crate::ClashRequestBuilder;
 use async_trait::async_trait;
 use reqwest::StatusCode;
 use path_absolutize::Absolutize;
+use serde::{Serialize, Deserialize};
+use serde_json;
 
 use super::ClashRequest;
 pub struct ClashConfig {
@@ -16,7 +18,47 @@ pub struct ClashConfigGet {
     port: String,
     secret: Option<String>,
 }
-pub struct ClashConfigPatch;
+
+#[derive(Serialize, Deserialize)]
+pub struct ClashConfigPatch {
+    #[serde(skip)]
+    api_ip: String,
+    #[serde(skip)]
+    api_port: String,
+    #[serde(skip)]
+    secret: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    port: Option<u16>,
+    #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
+    socks_port: Option<u16>,
+    #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
+    redir_port: Option<u16>,
+    #[serde(rename(serialize = "allow-lan", deserialize = "allow-lan"), skip_serializing_if = "Option::is_none")]
+    allow_lan: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mode: Option<ConfigMode>,
+    #[serde(rename(serialize = "log-level", deserialize = "log-level"), skip_serializing_if = "Option::is_none")]
+    log_level: Option<ConfigLogLevel>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ConfigMode {
+    Global,
+    Rule,
+    Direct,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ConfigLogLevel {
+    Info,
+    Warning,
+    Error,
+    Debug,
+}
+
 pub struct ClashConfigLoad {
     force: bool,
     config_path: PathBuf,
@@ -28,7 +70,19 @@ pub struct ClashConfigLoad {
 
 pub struct Config(String);
 pub struct LoadResult(StatusCode);
-pub struct PatchResult;
+pub struct PatchResult(StatusCode);
+
+impl LoadResult {
+    pub fn ok(&self) -> bool {
+        self.0 == StatusCode::NO_CONTENT
+    }
+}
+
+impl PatchResult {
+    pub fn ok(&self) -> bool {
+        self.0 == StatusCode::NO_CONTENT
+    }
+}
 
 impl From<ClashRequestBuilder> for ClashConfig {
     fn from(r: ClashRequestBuilder) -> Self {
@@ -46,7 +100,17 @@ impl ClashConfig {
     }
 
     fn patch(self) -> ClashConfigPatch {
-        todo!()
+        ClashConfigPatch {
+            api_ip: self.ip,
+            api_port: self.port,
+            secret: self.secret,
+            port: None,
+            socks_port: None,
+            redir_port: None,
+            allow_lan: None,
+            mode: None,
+            log_level: None,
+        }
     }
 
     fn load(self, path: &str) -> ClashConfigLoad {
@@ -92,7 +156,7 @@ impl ClashRequest for ClashConfigGet {
         "".to_owned()
     }
 
-    async fn send(self) -> Result< Self::Response, Box<dyn std::error::Error> > {
+    async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
         use super::get_request;
         get_request(self).await
     }
@@ -161,6 +225,88 @@ impl ClashConfigLoad {
     }
 }
 
+impl ClashConfigPatch {
+    pub fn port(self, port: u16) -> Self {
+        Self {
+            port: Some(port),
+            ..self
+        }
+    }
+
+    pub fn socks_port(self, port: u16) -> Self {
+        Self {
+            socks_port: Some(port),
+            ..self
+        }
+    }
+
+    pub fn redir_port(self, port: u16) -> Self {
+        Self {
+            redir_port: Some(port),
+            ..self
+        }
+    }
+
+    pub fn allow_lan(self, allow: bool) -> Self {
+        Self {
+            allow_lan: Some(allow),
+            ..self
+        }
+    }
+
+    pub fn mode(self, mode: ConfigMode) -> Self {
+        Self {
+            mode: Some(mode),
+            ..self
+        }
+    }
+
+    pub fn log_level(self, level: ConfigLogLevel) -> Self {
+        Self {
+            log_level: Some(level),
+            ..self
+        }
+    }
+}
+
+#[async_trait]
+impl ClashRequest for ClashConfigPatch {
+    type Response = PatchResult;
+
+    fn get_dest(&self) -> String {
+        self.api_ip.clone()
+    }
+
+    fn get_port(&self) -> String {
+        self.api_port.clone()
+    }
+
+    fn get_secret(&self) -> Option<String>  {
+        self.secret.clone()
+    }
+
+    fn get_method(&self) -> String {
+        "PATCH".to_owned()
+    }
+
+    fn get_path(&self) -> String {
+        "configs".to_owned()
+    }
+
+    fn get_query_parameter(&self) -> String {
+        "".to_owned()
+    }
+
+    fn get_body(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+
+    async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
+        use super::patch_request;
+        patch_request(self).await.map(PatchResult)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::{ClashRequest, config::Config};
@@ -200,5 +346,30 @@ mod test {
                                                  // this should return status code `200`. But it
                                                  // actually return `204` after reloading the 
                                                  // configuration file.
+    }
+
+    #[tokio::test]
+    async fn test_patch_config() {
+        use crate::ClashRequestBuilder;
+        use super::PatchResult;
+        use super::ConfigMode;
+        use super::ConfigLogLevel;
+
+        let res: PatchResult = ClashRequestBuilder::new()
+            .ip("127.0.0.1")
+            .port("9090")
+            .config()
+            .patch()
+            .port(9999)
+            .redir_port(8888)
+            .socks_port(7777)
+            .allow_lan(true)
+            .mode(ConfigMode::Global)
+            .log_level(ConfigLogLevel::Debug)
+            .send()
+            .await
+            .unwrap();
+
+        assert!(res.ok());
     }
 }

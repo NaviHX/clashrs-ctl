@@ -92,6 +92,21 @@ async fn put_request<T>(request: T) -> Result<reqwest::StatusCode, Box<dyn std::
     Ok(c)
 }
 
+async fn patch_request<T>(request: T) -> Result<reqwest::StatusCode, Box<dyn std::error::Error>>
+    where T: ClashRequest
+{
+    let c = Client::new()
+        .patch(format!("http://{}:{}/{}?{}",
+                     request.get_dest(),
+                     request.get_port(),
+                     request.get_path(),
+                     request.get_query_parameter()))
+        .body(request.get_body().to_owned())
+        .send().await?
+        .status();
+    Ok(c)
+}
+
 pub struct ClashRequestBuilder {
     ip: Option<String>,     // default: 127.0.0.1
     port: Option<String>,   // default: 9090
