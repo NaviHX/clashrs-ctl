@@ -6,7 +6,7 @@ use super::{ClashRequest, ClashRequestBuilder};
 
 pub struct ClashRule {
     ip: String,
-    port: String,
+    port: u16,
     secret: Option<String>,
 }
 
@@ -28,8 +28,8 @@ impl ClashRequest for ClashRule {
         self.ip.clone()
     }
 
-    fn get_port(&self) -> String {
-        self.port.clone()
+    fn get_port(&self) -> u16 {
+        self.port
     }
 
     fn get_secret(&self) -> Option<String> {

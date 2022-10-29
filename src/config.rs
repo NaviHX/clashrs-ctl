@@ -10,12 +10,12 @@ use serde_json;
 use super::ClashRequest;
 pub struct ClashConfig {
     ip: String,
-    port: String,
+    port: u16,
     secret: Option<String>,
 }
 pub struct ClashConfigGet {
     ip: String,
-    port: String,
+    port: u16,
     secret: Option<String>,
 }
 
@@ -24,7 +24,7 @@ pub struct ClashConfigPatch {
     #[serde(skip)]
     api_ip: String,
     #[serde(skip)]
-    api_port: String,
+    api_port: u16,
     #[serde(skip)]
     secret: Option<String>,
 
@@ -64,7 +64,7 @@ pub struct ClashConfigLoad {
     config_path: PathBuf,
 
     ip: String,
-    port: String,
+    port: u16,
     secret: Option<String>,
 }
 
@@ -132,7 +132,7 @@ impl ClashRequest for ClashConfigGet {
         self.ip.clone()
     }
 
-    fn get_port(&self) ->  String {
+    fn get_port(&self) ->  u16 {
         self.port.clone()
     }
 
@@ -186,7 +186,7 @@ impl ClashRequest for ClashConfigLoad {
         self.ip.clone()
     }
 
-    fn get_port(&self) ->  String {
+    fn get_port(&self) -> u16 {
         self.port.clone()
     }
 
@@ -277,7 +277,7 @@ impl ClashRequest for ClashConfigPatch {
         self.api_ip.clone()
     }
 
-    fn get_port(&self) -> String {
+    fn get_port(&self) -> u16 {
         self.api_port.clone()
     }
 
@@ -316,7 +316,7 @@ mod test {
         use crate::ClashRequestBuilder;
         let Config(res) = ClashRequestBuilder::new()
             .ip("127.0.0.1")
-            .port("9090")
+            .port(9090)
             .config()
             .get()
             .send()
@@ -334,7 +334,7 @@ mod test {
 
         let LoadResult(code) = ClashRequestBuilder::new()
             .ip("127.0.0.1")
-            .port("9090")
+            .port(9090)
             .config()
             .load("./clash-profile.reload")
             .force()
@@ -357,7 +357,7 @@ mod test {
 
         let res: PatchResult = ClashRequestBuilder::new()
             .ip("127.0.0.1")
-            .port("9090")
+            .port(9090)
             .config()
             .patch()
             .port(9999)

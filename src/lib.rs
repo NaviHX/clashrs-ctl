@@ -7,25 +7,6 @@ use rule::{ClashRule, RuleList};
 use config::{ClashConfig, ClashConfigGet};
 use tokio;
 
-macro_rules! fn_set_field {
-    ($id:ident) => {
-        pub fn $id(self, $id: &str) -> Self {
-            Self {
-                $id: Some($id.to_owned()),
-                ..self
-            }
-        }
-    };
-}
-
-macro_rules! field_setters {
-    [$($id:ident),*] => {
-        $(
-            fn_set_field!($id);
-        )*
-    }
-}
-
 macro_rules! fn_to_specified_request {
     ($func:ident, $to:ident) => {
         pub fn $func(self) -> $to {
@@ -47,7 +28,7 @@ pub trait ClashRequest {
     type Response;
 
     fn get_dest(&self) -> String;
-    fn get_port(&self) -> String;
+    fn get_port(&self) -> u16;
     fn get_secret(&self) -> Option<String>;
 
     fn get_method(&self) -> String;
@@ -109,7 +90,7 @@ async fn patch_request<T>(request: T) -> Result<reqwest::StatusCode, Box<dyn std
 
 pub struct ClashRequestBuilder {
     ip: Option<String>,     // default: 127.0.0.1
-    port: Option<String>,   // default: 9090
+    port: Option<u16>,   // default: 9090
     secret: Option<String>, // default: None
 }
 
@@ -125,12 +106,32 @@ impl ClashRequestBuilder {
     fn or_default(self) -> Self {
         Self {
             ip: self.ip.or_else(|| Some("127.0.0.1".to_owned())),
-            port: self.port.or_else(|| Some("9090".to_owned())),
+            port: self.port.or(Some(9090)),
             secret: self.secret,
         }
     }
 
-    field_setters![ip, port, secret];
+    pub fn ip(self, ip: &str) -> Self {
+        Self {
+            ip: Some(ip.to_owned()),
+            ..self
+        }
+    }
+
+    pub fn secret(self, secret: &str) -> Self {
+        Self {
+            secret: Some(secret.to_owned()),
+            ..self
+        }
+    }
+
+    pub fn port(self, port: u16) -> Self {
+        Self {
+            port: Some(port),
+            ..self
+        }
+    }
+
     request_builders![
         // proxy, ClashProxy;
         config, ClashConfig;
