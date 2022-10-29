@@ -1,0 +1,10 @@
+# port: 7890
+# socks-port: 7891
+# redir-port: 7892
+# tproxy-port: 7893
+mixed-port: 9990
+allow-lan: true
+bind-address: "*"
+mode: Rule
+log-level: info
+external-controller: 127.0.0.1:9090
