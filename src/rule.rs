@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 
 use async_trait::async_trait;
+use serde::{Serialize, Deserialize};
 
 use super::{ClashRequest, ClashRequestBuilder};
 
@@ -58,11 +59,21 @@ impl ClashRequest for ClashRule {
     }
 }
 
-pub struct RuleList(pub String);
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RuleList {
+    rules: Vec<Rule>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Rule {
+    r#type: String,
+    payload: String,
+    proxy: String,
+}
 
 impl From<String> for RuleList {
     fn from(s: String) -> Self {
-        Self(s)
+        serde_json::from_str(&s).expect("cannot parse the rule list")
     }
 }
 
@@ -74,7 +85,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_rule() {
         let req = ClashRequestBuilder::new().rule().send();
-        let RuleList(rule) = req.await.unwrap();
-        println!("{}", rule);
+        let rule_list = req.await.unwrap();
+        println!("{:?}", rule_list);
     }
 }

@@ -28,21 +28,11 @@ pub struct ClashConfigPatch {
     #[serde(skip)]
     secret: Option<String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    port: Option<u16>,
-    #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
-    socks_port: Option<u16>,
-    #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
-    redir_port: Option<u16>,
-    #[serde(rename(serialize = "allow-lan", deserialize = "allow-lan"), skip_serializing_if = "Option::is_none")]
-    allow_lan: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    mode: Option<ConfigMode>,
-    #[serde(rename(serialize = "log-level", deserialize = "log-level"), skip_serializing_if = "Option::is_none")]
-    log_level: Option<ConfigLogLevel>,
+    #[serde(flatten)]
+    config: Config,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum ConfigMode {
     Global,
@@ -50,7 +40,7 @@ pub enum ConfigMode {
     Direct,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum ConfigLogLevel {
     Info,
@@ -68,7 +58,21 @@ pub struct ClashConfigLoad {
     secret: Option<String>,
 }
 
-pub struct Config(String);
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Config {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    port: Option<u16>,
+    #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
+    socks_port: Option<u16>,
+    #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
+    redir_port: Option<u16>,
+    #[serde(rename(serialize = "allow-lan", deserialize = "allow-lan"), skip_serializing_if = "Option::is_none")]
+    allow_lan: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mode: Option<ConfigMode>,
+    #[serde(rename(serialize = "log-level", deserialize = "log-level"), skip_serializing_if = "Option::is_none")]
+    log_level: Option<ConfigLogLevel>,
+}
 pub struct LoadResult(StatusCode);
 pub struct PatchResult(StatusCode);
 
@@ -104,12 +108,7 @@ impl ClashConfig {
             api_ip: self.ip,
             api_port: self.port,
             secret: self.secret,
-            port: None,
-            socks_port: None,
-            redir_port: None,
-            allow_lan: None,
-            mode: None,
-            log_level: None,
+            config: Config::new(),
         }
     }
 
@@ -174,7 +173,7 @@ impl From<ClashConfig> for ClashConfigGet {
 
 impl From<String> for Config {
     fn from(s: String) -> Self {
-        Self(s)
+        serde_json::from_str(&s).expect("cannot parse the configuration")
     }
 }
 
@@ -225,7 +224,17 @@ impl ClashConfigLoad {
     }
 }
 
-impl ClashConfigPatch {
+impl Config {
+    pub fn new() -> Self {
+        Self {
+            port: None,
+            socks_port: None,
+            redir_port: None,
+            allow_lan: None,
+            mode: None,
+            log_level: None,
+        }
+    }
     pub fn port(self, port: u16) -> Self {
         Self {
             port: Some(port),
@@ -264,6 +273,49 @@ impl ClashConfigPatch {
     pub fn log_level(self, level: ConfigLogLevel) -> Self {
         Self {
             log_level: Some(level),
+            ..self
+        }
+    }
+}
+impl ClashConfigPatch {
+    pub fn port(self, port: u16) -> Self {
+        Self {
+            config: self.config.port(port),
+            ..self
+        }
+    }
+
+    pub fn socks_port(self, port: u16) -> Self {
+        Self {
+            config: self.config.socks_port(port),
+            ..self
+        }
+    }
+
+    pub fn redir_port(self, port: u16) -> Self {
+        Self {
+            config: self.config.redir_port(port),
+            ..self
+        }
+    }
+
+    pub fn allow_lan(self, allow: bool) -> Self {
+        Self {
+            config: self.config.allow_lan(allow),
+            ..self
+        }
+    }
+
+    pub fn mode(self, mode: ConfigMode) -> Self {
+        Self {
+            config: self.config.mode(mode),
+            ..self
+        }
+    }
+
+    pub fn log_level(self, level: ConfigLogLevel) -> Self {
+        Self {
+            config: self.config.log_level(level),
             ..self
         }
     }
@@ -314,7 +366,7 @@ mod test {
     #[tokio::test]
     async fn test_get_config() {
         use crate::ClashRequestBuilder;
-        let Config(res) = ClashRequestBuilder::new()
+        let res = ClashRequestBuilder::new()
             .ip("127.0.0.1")
             .port(9090)
             .config()
@@ -323,7 +375,7 @@ mod test {
             .await
             .unwrap();
 
-        println!("config: {}", res);
+        println!("{:?}", res);
     }
 
     #[tokio::test]
