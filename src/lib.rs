@@ -9,9 +9,9 @@ use tokio;
 
 macro_rules! fn_set_field {
     ($id:ident) => {
-        pub fn $id(self, $id: String) -> Self {
+        pub fn $id(self, $id: &str) -> Self {
             Self {
-                $id: Some($id),
+                $id: Some($id.to_owned()),
                 ..self
             }
         }
@@ -44,17 +44,17 @@ macro_rules! request_builders {
 
 #[async_trait]
 pub trait ClashRequest {
-    type Response: From<String>;
+    type Response;
 
-    fn get_dest(&self) -> &str;
-    fn get_port(&self) -> &str;
-    fn get_secret(&self) -> Option<&str>;
+    fn get_dest(&self) -> String;
+    fn get_port(&self) -> String;
+    fn get_secret(&self) -> Option<String>;
 
-    fn get_method(&self) -> &str;
+    fn get_method(&self) -> String;
 
-    fn get_path(&self) -> &str;
-    fn get_query_parameter(&self) -> &str;
-    fn get_body(&self) -> &str;
+    fn get_path(&self) -> String;
+    fn get_query_parameter(&self) -> String;
+    fn get_body(&self) -> String;
 
     async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>>;
 }
@@ -75,6 +75,21 @@ async fn get_request<T>(request: T) -> Result<T::Response, Box<dyn std::error::E
         .send().await?
         .text().await?;
     Ok(c.into())
+}
+
+async fn put_request<T>(request: T) -> Result<reqwest::StatusCode, Box<dyn std::error::Error>>
+    where T: ClashRequest
+{
+    let c = Client::new()
+        .put(format!("http://{}:{}/{}?{}",
+                     request.get_dest(),
+                     request.get_port(),
+                     request.get_path(),
+                     request.get_query_parameter()))
+        .body(request.get_body().to_owned())
+        .send().await?
+        .status();
+    Ok(c)
 }
 
 pub struct ClashRequestBuilder {

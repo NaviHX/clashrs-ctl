@@ -24,32 +24,32 @@ impl From<ClashRequestBuilder> for ClashRule {
 impl ClashRequest for ClashRule {
     type Response = RuleList;
 
-    fn get_dest(&self) -> &str {
-        &self.ip
+    fn get_dest(&self) -> String {
+        self.ip.clone()
     }
 
-    fn get_port(&self) -> &str {
-        &self.port
+    fn get_port(&self) -> String {
+        self.port.clone()
     }
 
-    fn get_secret(&self) -> Option<&str> {
-        (&self.secret).as_ref().map(|r| r.borrow())
+    fn get_secret(&self) -> Option<String> {
+        self.secret.clone()
     }
 
-    fn get_method(&self) -> &str {
-        "GET"
+    fn get_method(&self) -> String {
+        "GET".to_owned()
     }
 
-    fn get_path(&self) -> &str {
-        "rules"
+    fn get_path(&self) -> String {
+        "rules".to_owned()
     }
 
-    fn get_query_parameter(&self) -> &str {
-        ""
+    fn get_query_parameter(&self) -> String {
+        "".to_owned()
     }
 
-    fn get_body(&self) -> &str {
-        ""
+    fn get_body(&self) -> String {
+        "".to_owned()
     }
 
     async fn send(self) -> Result<Self::Response , Box<dyn std::error::Error>> {
@@ -74,7 +74,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_rule() {
         let req = ClashRequestBuilder::new().rule().send();
-                let RuleList(rule) = req.await.unwrap();
-                // println!("{}", rule);
+        let RuleList(rule) = req.await.unwrap();
+        println!("{}", rule);
     }
 }
