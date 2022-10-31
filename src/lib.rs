@@ -5,6 +5,7 @@ pub mod rule;
 use async_trait::async_trait;
 use rule::{ClashRule, RuleList};
 use config::{ClashConfig, ClashConfigGet};
+use proxy::{ClashProxy};
 use tokio;
 
 macro_rules! fn_to_specified_request {
@@ -133,7 +134,7 @@ impl ClashRequestBuilder {
     }
 
     request_builders![
-        // proxy, ClashProxy;
+        proxy, ClashProxy;
         config, ClashConfig;
         rule, ClashRule
     ];
