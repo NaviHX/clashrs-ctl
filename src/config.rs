@@ -32,7 +32,9 @@ pub struct ClashConfigPatch {
     config: Config,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+use clap::ValueEnum;
+
+#[derive(Serialize, Deserialize, Debug, Clone, ValueEnum)]
 #[serde(rename_all = "lowercase")]
 pub enum ConfigMode {
     Global,
@@ -40,7 +42,7 @@ pub enum ConfigMode {
     Direct,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, ValueEnum)]
 #[serde(rename_all = "lowercase")]
 pub enum ConfigLogLevel {
     Info,
@@ -99,11 +101,11 @@ impl From<ClashRequestBuilder> for ClashConfig {
 }
 
 impl ClashConfig {
-    fn get(self) -> ClashConfigGet {
+    pub fn get(self) -> ClashConfigGet {
         self.into()
     }
 
-    fn patch(self) -> ClashConfigPatch {
+    pub fn patch(self) -> ClashConfigPatch {
         ClashConfigPatch {
             api_ip: self.ip,
             api_port: self.port,
@@ -112,7 +114,7 @@ impl ClashConfig {
         }
     }
 
-    fn load(self, path: &str) -> ClashConfigLoad {
+    pub fn load(self, path: &str) -> ClashConfigLoad {
         ClashConfigLoad {
             force: false,
             config_path: path.to_owned().into(),
@@ -409,7 +411,6 @@ mod test {
 
         let res: PatchResult = ClashRequestBuilder::new()
             .ip("127.0.0.1")
-            .port(9090)
             .config()
             .patch()
             .port(9999)
