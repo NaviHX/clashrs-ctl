@@ -8,8 +8,8 @@ a simple tool to manage clash
 |---|---|---|---|
 |`/trafic`|`GET`|get current traffic|x|
 |`/logs`|`GET`|get real time logs|x|
-|`/proxies`|`GET`|get the of proxies|x|
-|`/proxies/:name`|`GET`|get the information of proxy `name`|x|
+|`/proxies`|`GET`|get the list of proxies|WIP|
+|`/proxies/:name`|`GET`|get the information of proxy `name`|WIP|
 |`/proxies/:name/delay`|`GET`|get the delay of proxy `name`|x|
 |`/proxies/:name`|`POST`|change the selected proxy|x|
 |`/configs`|`GET`|get the current configuration|o|
@@ -24,5 +24,5 @@ a simple tool to manage clash
 3. `proxies` api support: x
 4. `logs` api support: x
 5. `trafic` api support: x
-6. CLI: x
+6. CLI: WIP
 
