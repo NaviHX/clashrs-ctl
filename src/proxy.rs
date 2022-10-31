@@ -34,6 +34,13 @@ pub struct ClashProxy {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct ProxyInfo {
+    all: Vec<String>,
+    now: String,
+    r#type: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ProxyList {
     proxies: Map<String, Value>,
 }
@@ -59,6 +66,26 @@ impl std::convert::From<crate::ClashRequestBuilder> for ClashProxy {
             secret: f.secret,
         }
     }
+}
+
+impl ClashProxy {
+    pub fn get(self, proxy_name: &str) -> ClashProxyInfo {
+        ClashProxyInfo {
+            ip: self.ip,
+            port: self.port,
+            secret: self.secret,
+
+            proxy_name: proxy_name.to_owned(),
+        }
+    }
+}
+
+pub struct ClashProxyInfo {
+    ip: String,
+    port: u16,
+    secret: Option<String>,
+
+    proxy_name: String,
 }
 
 #[async_trait]
@@ -98,6 +125,54 @@ impl ClashRequest for ClashProxy {
     }
 }
 
+#[async_trait]
+impl ClashRequest for ClashProxyInfo {
+    type Response = ProxyInfo;
+
+    fn get_dest(&self) -> String {
+        self.ip.clone()
+    }
+
+    fn get_port(&self) -> u16 {
+        self.port
+    }
+
+    fn get_secret(&self) -> Option<String>  {
+        self.secret.clone()
+    }
+
+    fn get_method(&self) -> String {
+        "GET".to_owned()
+    }
+
+    fn get_path(&self) -> String {
+        format!("proxies/{}", self.proxy_name)
+    }
+
+    fn get_query_parameter(&self) -> String {
+        "".to_owned()
+    }
+
+    fn get_body(&self) -> String {
+        "".to_owned()
+    }
+
+    async fn send(self) -> Result<Self::Response, Box<dyn Error>> {
+        use reqwest::Client;
+        let c = Client::new()
+            .get(format!("http://{}:{}/{}?{}", self.ip, self.port, self.get_path(), self.get_query_parameter()))
+            .body(self.get_body())
+            .send()
+            .await?;
+        if c.status().is_success() {
+            let info = serde_json::from_str::<ProxyInfo>( &c.text().await? )?;
+            Ok( info )
+        } else {
+            Err( Box::new(ProxyError::ProxyNotExisted) )
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::ClashRequest;
@@ -114,6 +189,19 @@ mod test {
         for ( proxy, status ) in c.iter() {
             println!("{}: {}", proxy, status["type"]);
         }
+    }
+
+    #[tokio::test]
+    async fn test_get_proxy_info() {
+        use crate::ClashRequestBuilder;
+        let c = ClashRequestBuilder::new()
+            .proxy()
+            .get("GLOBAL")
+            .send()
+            .await
+            .unwrap();
+
+        println!("{:?}", c);
     }
 }
 
