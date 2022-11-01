@@ -13,18 +13,24 @@ pub enum ProxyError {
     ProxyNotExisted,
     FormatError,
     TimeOut,
-    UnknownError,
+    UnknownError(u16),
 }
 
 impl std::fmt::Display for ProxyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use ProxyError::*;
-        write!(f, "{}", match self {
-            ProxyNotExisted => "Proxy not existed",
-            FormatError => "Request format error",
-            TimeOut => "Delay timeout",
-            UnknownError => "Unknown error",
-        })
+        // write!(f, "{}", match self {
+        //     ProxyNotExisted => "Proxy not existed",
+        //     FormatError => "Request format error",
+        //     TimeOut => "Delay timeout",
+        //     UnknownError(_code) => "Unknown error",
+        // })
+        match self {
+            ProxyNotExisted => write!(f, "Proxy not existed"),
+            FormatError => write!(f, "Request format error"),
+            TimeOut => write!(f, "Delay timeout" ),
+            UnknownError(code) => write!(f, "Unknown error: {}", code),
+        }
     }
 }
 
@@ -54,7 +60,6 @@ impl ProxyList {
     }
 }
 
-// TODO: use TryFrom here, because the convert can fail and we can catch the error instead of panic
 // impl std::convert::From<String> for ProxyList {
 //     fn from(s: String) -> Self {
 //         serde_json::from_str(&s).expect("cannot parse")
@@ -107,6 +112,69 @@ impl ClashProxyInfo {
 
             url: url.to_owned(),
             timeout,
+        }
+    }
+
+    pub fn change(self, new_proxy: &str) -> ClashProxyChange {
+        ClashProxyChange {
+            ip: self.ip,
+            port: self.port,
+            secret: self.secret,
+            proxy_name: self.proxy_name,
+
+            new_proxy: new_proxy.to_owned(),
+        }
+    }
+}
+
+pub struct ClashProxyChange {
+    ip: String,
+    port: u16,
+    secret: Option<String>,
+    proxy_name: String,
+    new_proxy: String,
+}
+
+#[async_trait]
+impl ClashRequest for ClashProxyChange {
+    type Response = ();
+
+    fn get_dest(&self) -> String {
+        self.ip.clone()
+    }
+
+    fn get_port(&self) -> u16 {
+        self.port
+    }
+
+    fn get_secret(&self) -> Option<String>  {
+        self.secret.clone()
+    }
+
+    fn get_method(&self) -> String {
+        "PUT".to_owned()
+    }
+
+    fn get_path(&self) -> String {
+        format!("proxies/{}", self.proxy_name)
+    }
+
+    fn get_query_parameter(&self) -> String {
+        "".to_owned()
+    }
+
+    fn get_body(&self) -> String {
+        format!("{{ \"name\": \"{}\"}}", self.new_proxy)
+    }
+
+    async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
+        let res = put_request(self).await?;
+        match res {
+            // StatusCode::OK => Ok(()),
+            StatusCode::NO_CONTENT => Ok(()), // return 204 for success for graceful shutdown
+            StatusCode::BAD_REQUEST => Err(Box::new(ProxyError::FormatError)),
+            StatusCode::NOT_FOUND => Err(Box::new(ProxyError::ProxyNotExisted)),
+            code => Err(Box::new(ProxyError::UnknownError(code.as_u16()))),
         }
     }
 }
@@ -169,7 +237,7 @@ impl ClashRequest for ClashProxyDelay {
         } else if c.status() == StatusCode::NOT_FOUND {
             Err( Box::new(ProxyError::ProxyNotExisted))
         } else {
-            Err( Box::new(ProxyError::UnknownError))
+            Err( Box::new(ProxyError::UnknownError(c.status().as_u16())))
         }
     }
 }
@@ -326,6 +394,18 @@ mod test {
             Ok( ProxyDelay{ delay } ) => println!("delay: {} ms", delay),
             Err( error ) => println!("{}", error),
         }
+    }
+
+    #[tokio::test]
+    async fn test_change_proxy() {
+        use crate::ClashRequestBuilder;
+        ClashRequestBuilder::new()
+            .proxies()
+            .get("GLOBAL")
+            .change("DIRECT")
+            .send()
+            .await
+            .unwrap();
     }
 }
 
