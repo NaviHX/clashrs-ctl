@@ -1,5 +1,6 @@
 use std::error::Error;
 use async_trait::async_trait;
+use reqwest::StatusCode;
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map};
 
@@ -12,6 +13,7 @@ pub enum ProxyError {
     ProxyNotExisted,
     FormatError,
     TimeOut,
+    UnknownError,
 }
 
 impl std::fmt::Display for ProxyError {
@@ -21,6 +23,7 @@ impl std::fmt::Display for ProxyError {
             ProxyNotExisted => "Proxy not existed",
             FormatError => "Request format error",
             TimeOut => "Delay timeout",
+            UnknownError => "Unknown error",
         })
     }
 }
@@ -92,6 +95,88 @@ pub struct ClashProxyInfo {
     secret: Option<String>,
 
     proxy_name: String,
+}
+
+impl ClashProxyInfo {
+    pub fn delay(self, url: &str, timeout: u32) -> ClashProxyDelay {
+        ClashProxyDelay {
+            ip: self.ip,
+            port: self.port,
+            secret: self.secret,
+            proxy_name: self.proxy_name,
+
+            url: url.to_owned(),
+            timeout,
+        }
+    }
+}
+
+pub struct ClashProxyDelay {
+    ip: String,
+    port: u16,
+    secret: Option<String>,
+    proxy_name: String,
+    url: String,
+    timeout: u32,
+}
+
+#[async_trait]
+impl ClashRequest for ClashProxyDelay {
+    type Response = ProxyDelay;
+
+    fn get_dest(&self) -> String {
+        self.ip.clone()
+    }
+
+    fn get_port(&self) -> u16 {
+        self.port
+    }
+
+    fn get_secret(&self) -> Option<String>  {
+        self.secret.clone()
+    }
+
+    fn get_method(&self) -> String {
+        "GET".to_owned()
+    }
+
+    fn get_path(&self) -> String {
+        format!("proxies/{}/delay", self.proxy_name)
+    }
+
+    fn get_query_parameter(&self) -> String {
+        format!("timeout={}&url={}", self.timeout, self.url)
+    }
+
+    fn get_body(&self) -> String {
+        "".to_owned()
+    }
+
+    async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
+        use reqwest::Client;
+        let c = Client::new()
+            .get(format!("http://{}:{}/{}?{}", self.ip, self.port, self.get_path(), self.get_query_parameter()))
+            .body(self.get_body())
+            .send()
+            .await?;
+        if c.status().is_success() {
+            let info = c.text().await?.try_into()?;
+            Ok( info )
+        } else if c.status() == StatusCode::BAD_REQUEST {
+            Err( Box::new(ProxyError::FormatError) )
+        } else if c.status() == StatusCode::REQUEST_TIMEOUT {
+            Err( Box::new(ProxyError::TimeOut))
+        } else if c.status() == StatusCode::NOT_FOUND {
+            Err( Box::new(ProxyError::ProxyNotExisted))
+        } else {
+            Err( Box::new(ProxyError::UnknownError))
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct ProxyDelay {
+    delay: u64,
 }
 
 #[async_trait]
@@ -187,6 +272,14 @@ impl TryFrom<String> for ProxyInfo {
     }
 }
 
+impl TryFrom<String> for ProxyDelay {
+    type Error = serde_json::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        serde_json::from_str(&value)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::ClashRequest;
@@ -195,7 +288,7 @@ mod test {
     async fn test_get_proxy_list() {
         use crate::ClashRequestBuilder;
         let c = ClashRequestBuilder::new()
-            .proxy()
+            .proxies()
             .send()
             .await
             .unwrap();
@@ -209,13 +302,30 @@ mod test {
     async fn test_get_proxy_info() {
         use crate::ClashRequestBuilder;
         let c = ClashRequestBuilder::new()
-            .proxy()
+            .proxies()
             .get("GLOBAL")
             .send()
             .await
             .unwrap();
 
         println!("{:?}", c);
+    }
+
+    #[tokio::test]
+    async fn test_get_proxy_delay() {
+        use crate::ClashRequestBuilder;
+        use super::ProxyDelay;
+        let c = ClashRequestBuilder::new()
+            .proxies()
+            .get("DIRECT")
+            .delay("http%3A%2F%2Fbaidu.com", 1000)
+            .send()
+            .await;
+
+        match c {
+            Ok( ProxyDelay{ delay } ) => println!("delay: {} ms", delay),
+            Err( error ) => println!("{}", error),
+        }
     }
 }
 

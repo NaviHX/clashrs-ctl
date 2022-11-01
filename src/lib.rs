@@ -140,7 +140,7 @@ impl ClashRequestBuilder {
     }
 
     request_builders![
-        proxy, ClashProxy;
+        proxies, ClashProxy;
         config, ClashConfig;
         rule, ClashRule
     ];
