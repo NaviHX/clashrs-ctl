@@ -71,9 +71,17 @@ pub struct Rule {
     proxy: String,
 }
 
-impl From<String> for RuleList {
-    fn from(s: String) -> Self {
-        serde_json::from_str(&s).expect("cannot parse the rule list")
+// impl From<String> for RuleList {
+//     fn from(s: String) -> Self {
+//         serde_json::from_str(&s).expect("cannot parse the rule list")
+//     }
+// }
+
+impl TryFrom<String> for RuleList {
+    type Error = serde_json::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        serde_json::from_str(&value)
     }
 }
 

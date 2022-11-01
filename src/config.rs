@@ -173,9 +173,17 @@ impl From<ClashConfig> for ClashConfigGet {
     }
 }
 
-impl From<String> for Config {
-    fn from(s: String) -> Self {
-        serde_json::from_str(&s).expect("cannot parse the configuration")
+// impl From<String> for Config {
+//     fn from(s: String) -> Self {
+//         serde_json::from_str(&s).expect("cannot parse the configuration")
+//     }
+// }
+
+impl TryFrom<String> for Config {
+    type Error = serde_json::Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        serde_json::from_str(&s)
     }
 }
 

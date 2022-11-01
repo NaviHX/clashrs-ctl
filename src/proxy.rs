@@ -52,12 +52,18 @@ impl ProxyList {
 }
 
 // TODO: use TryFrom here, because the convert can fail and we can catch the error instead of panic
-impl std::convert::From<String> for ProxyList {
-    fn from(s: String) -> Self {
-        serde_json::from_str(&s).expect("cannot parse")
+// impl std::convert::From<String> for ProxyList {
+//     fn from(s: String) -> Self {
+//         serde_json::from_str(&s).expect("cannot parse")
+//     }
+// }
+impl TryFrom<String> for ProxyList {
+    type Error = serde_json::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        serde_json::from_str(&value)
     }
 }
-
 impl std::convert::From<crate::ClashRequestBuilder> for ClashProxy {
     fn from(f: crate::ClashRequestBuilder) -> Self {
         Self {
@@ -165,11 +171,19 @@ impl ClashRequest for ClashProxyInfo {
             .send()
             .await?;
         if c.status().is_success() {
-            let info = serde_json::from_str::<ProxyInfo>( &c.text().await? )?;
+            let info = c.text().await?.try_into()?;
             Ok( info )
         } else {
             Err( Box::new(ProxyError::ProxyNotExisted) )
         }
+    }
+}
+
+impl TryFrom<String> for ProxyInfo {
+    type Error = serde_json::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        serde_json::from_str(&value)
     }
 }
 

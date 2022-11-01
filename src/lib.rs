@@ -43,9 +43,11 @@ pub trait ClashRequest {
 
 use reqwest::Client;
 
-async fn get_request<T>(request: T) -> Result<T::Response, Box<dyn std::error::Error>>
+async fn get_request<'a, T>(request: T) -> Result<T::Response, Box<dyn std::error::Error + 'a>>
     where T: ClashRequest,
-        T::Response: From<String>
+        // T::Response: From<String>
+        T::Response: TryFrom<String>,
+        <T::Response as TryFrom<String>>::Error: std::error::Error + 'a
 {
     let c = Client::new()
         .get(format!("http://{}:{}/{}?{}",
@@ -56,7 +58,11 @@ async fn get_request<T>(request: T) -> Result<T::Response, Box<dyn std::error::E
         .body(request.get_body().to_owned())
         .send().await?
         .text().await?;
-    Ok(c.into())
+
+    match c.try_into() {
+        Ok(res) => Ok(res),
+        Err(err) => Err(Box::new(err)),
+    }
 }
 
 async fn put_request<T>(request: T) -> Result<reqwest::StatusCode, Box<dyn std::error::Error>>
