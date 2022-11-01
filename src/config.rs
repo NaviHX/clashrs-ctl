@@ -75,18 +75,38 @@ pub struct Config {
     #[serde(rename(serialize = "log-level", deserialize = "log-level"), skip_serializing_if = "Option::is_none")]
     log_level: Option<ConfigLogLevel>,
 }
-pub struct LoadResult(StatusCode);
-pub struct PatchResult(StatusCode);
 
-impl LoadResult {
-    pub fn ok(&self) -> bool {
-        self.0 == StatusCode::NO_CONTENT
+// pub struct LoadResult(StatusCode);
+// pub struct PatchResult(StatusCode);
+//
+// impl LoadResult {
+//     pub fn ok(&self) -> bool {
+//         self.0 == StatusCode::NO_CONTENT
+//     }
+// }
+//
+// impl PatchResult {
+//     pub fn ok(&self) -> bool {
+//         self.0 == StatusCode::NO_CONTENT
+//     }
+// }
+
+#[derive(Debug)]
+pub struct LoadError;
+#[derive(Debug)]
+pub struct PatchError;
+impl std::error::Error for LoadError {}
+impl std::error::Error for PatchError {}
+
+impl std::fmt::Display for LoadError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Load configuration failed")
     }
 }
 
-impl PatchResult {
-    pub fn ok(&self) -> bool {
-        self.0 == StatusCode::NO_CONTENT
+impl std::fmt::Display for PatchError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Configuration patch error")
     }
 }
 
@@ -189,7 +209,7 @@ impl TryFrom<String> for Config {
 
 #[async_trait]
 impl ClashRequest for ClashConfigLoad {
-    type Response = LoadResult;
+    type Response = ();
 
     fn get_dest(&self) ->  String {
         self.ip.clone()
@@ -221,7 +241,12 @@ impl ClashRequest for ClashConfigLoad {
 
     async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
         use super::put_request;
-        put_request(self).await.map(LoadResult)
+        let code = put_request(self).await?;
+        if let StatusCode::NO_CONTENT = code {
+            Ok(())
+        } else {
+            Err(Box::new(LoadError))
+        }
     }
 }
 
@@ -333,7 +358,7 @@ impl ClashConfigPatch {
 
 #[async_trait]
 impl ClashRequest for ClashConfigPatch {
-    type Response = PatchResult;
+    type Response = ();
 
     fn get_dest(&self) -> String {
         self.api_ip.clone()
@@ -365,7 +390,16 @@ impl ClashRequest for ClashConfigPatch {
 
     async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
         use super::patch_request;
-        patch_request(self).await.map(PatchResult)
+        let code = patch_request(self).await?;
+        if let StatusCode::NO_CONTENT = code {
+            Ok(()) // According to the doc on `clash.gitbook.io`,
+                   // this should return status code `200`. But it
+                   // actually return `204` after reloading the 
+                   // configuration file.
+
+        } else {
+            Err(Box::new(PatchError))
+        }
     }
 }
 
@@ -391,10 +425,8 @@ mod test {
     #[tokio::test]
     async fn test_load_config() {
         use crate::ClashRequestBuilder;
-        use super::LoadResult;
-        use reqwest::StatusCode;
 
-        let LoadResult(code) = ClashRequestBuilder::new()
+        ClashRequestBuilder::new()
             .ip("127.0.0.1")
             .port(9090)
             .config()
@@ -403,21 +435,15 @@ mod test {
             .send()
             .await
             .unwrap();
-
-        assert!(code == StatusCode::NO_CONTENT); // According to the doc on `clash.gitbook.io`,
-                                                 // this should return status code `200`. But it
-                                                 // actually return `204` after reloading the 
-                                                 // configuration file.
     }
 
     #[tokio::test]
     async fn test_patch_config() {
         use crate::ClashRequestBuilder;
-        use super::PatchResult;
         use super::ConfigMode;
         use super::ConfigLogLevel;
 
-        let res: PatchResult = ClashRequestBuilder::new()
+        ClashRequestBuilder::new()
             .ip("127.0.0.1")
             .config()
             .patch()
@@ -430,7 +456,5 @@ mod test {
             .send()
             .await
             .unwrap();
-
-        assert!(res.ok());
     }
 }

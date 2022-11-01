@@ -35,10 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("{:?}", res);
                 }
                 ConfigCommand::Load { path } => {
-                    let res = client.load(&path).send().await?;
-                    if !res.ok() {
-                        eprintln!("request error");
-                    }
+                    client.load(&path).send().await?
                 }
                 ConfigCommand::Patch { port, socks_port, redir_port, allow_lan, mode, log_level } => {
                     let mut client = client.patch();
@@ -50,10 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if let Some(mode) = mode { client = client.mode(mode) }
                     if let Some(level) = log_level { client = client.log_level(level) }
 
-                    let res = client.send().await?;
-                    if !res.ok() {
-                        eprintln!("request error");
-                    }
+                    client.send().await?
                 }
             }
         }
