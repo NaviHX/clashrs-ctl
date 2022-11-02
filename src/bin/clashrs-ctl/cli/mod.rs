@@ -5,9 +5,11 @@ use clashrsctl_core::config::{ConfigLogLevel, ConfigMode};
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     #[arg(short, long)]
+    /// IP address or domain name the clash controller is listening
     pub server: Option<String>,
 
     #[arg(short, long)]
+    /// The port which the clash controller is listening
     pub port: Option<u16>,
 
     #[command(subcommand)]
@@ -17,9 +19,14 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Command {
     Config(Config),
+    /// List all rules
     Rules,
     Proxy(Proxy),
+    /// Print realtime log.
+    /// NOT supported now
     Log,
+    /// Print the traffic.
+    /// NOT supported now
     Traffic,
 }
 
@@ -36,15 +43,19 @@ pub struct Proxy{
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum ProxyCommand {
+    /// List all proxis
     List,
+    /// Check and print the delay to the specified url with a proxy
     Delay {
         proxy: String,
         url: String,
         timeout: u32,
     },
+    /// Check the info of a proxy
     Info {
         proxy: String,
     },
+    /// Change the selected proxy of a selector
     Change {
         proxy: String,
         new_proxy: String,
@@ -59,10 +70,14 @@ pub struct Config {
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum ConfigCommand {
+    /// Check and print the clash configuration
     List,
+    /// Make the clash core load a configuration file with either a absolute path or a relative
+    /// path
     Load {
         path: String,
     },
+    /// Send a patch of the currently loaded configuration
     Patch {
         #[arg(short, long)]
         port: Option<u16>,
