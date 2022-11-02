@@ -1,8 +1,10 @@
 use clap::Parser;
 use clashrsctl_core::{ClashRequestBuilder, ClashRequest};
 use tokio;
+use crate::output::CliOutput;
 
 mod cli;
+mod output;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,7 +23,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let res = client.rule().send().await?;
 
             // TODO: prettify output
-            println!("{:?}", res);
+            // println!("{:?}", res);
+            res.print();
         }
         Command::Config(cli::Config{ command }) => {
             use cli::ConfigCommand;
@@ -32,7 +35,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let res = client.get().send().await?;
 
                     // TODO: prettify output
-                    println!("{:?}", res);
+                    // println!("{:?}", res);
+                    res.print()
                 }
                 ConfigCommand::Load { path } => {
                     client.load(&path).send().await?
@@ -60,20 +64,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let res = client.send().await?;
 
                     // TODO: prettify output
-                    println!("{:?}", res);
+                    // println!("{:?}", res);
+                    res.print();
                 }
                 ProxyCommand::Info { proxy } => {
                     let res = client.get(&proxy).send().await?;
 
                     // TODO: prettify output
-                    println!("{:?}", res);
+                    // println!("{:?}", res);
+                    res.print()
                 }
                 ProxyCommand::Delay { proxy, url, timeout } => {
                     use urlencoding::encode;
                     let encoded = encode(&url);
                     let clashrsctl_core::proxy::ProxyDelay { delay } = client.get(&proxy).delay(&encoded, timeout).send().await?;
 
-                    // TODO: prettify output
                     println!("{} ms", delay);
                 }
                 ProxyCommand::Change { proxy, new_proxy } => {

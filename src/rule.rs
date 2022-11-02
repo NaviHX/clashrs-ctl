@@ -66,9 +66,9 @@ pub struct RuleList {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Rule {
-    r#type: String,
-    payload: String,
-    proxy: String,
+    pub r#type: String,
+    pub payload: String,
+    pub proxy: String,
 }
 
 // impl From<String> for RuleList {
@@ -82,6 +82,12 @@ impl TryFrom<String> for RuleList {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         serde_json::from_str(&value)
+    }
+}
+
+impl RuleList {
+    pub fn iter(&self) -> impl Iterator<Item = &Rule> {
+        self.rules.iter()
     }
 }
 

@@ -45,9 +45,9 @@ pub struct ClashProxy {
 // HACK: proxy info may not include all of these information
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProxyInfo {
-    all: Option< Vec<String> >,
-    now: Option< String >,
-    r#type: Option< String >,
+    pub all: Option< Vec<String> >,
+    pub now: Option< String >,
+    pub r#type: Option< String >,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

@@ -63,17 +63,17 @@ pub struct ClashConfigLoad {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none")]
-    port: Option<u16>,
+    pub port: Option<u16>,
     #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
-    socks_port: Option<u16>,
-    #[serde(rename(serialize = "socks-port", deserialize = "socks-port"), skip_serializing_if = "Option::is_none")]
-    redir_port: Option<u16>,
+    pub socks_port: Option<u16>,
+    #[serde(rename(serialize = "redir-port", deserialize = "redir-port"), skip_serializing_if = "Option::is_none")]
+    pub redir_port: Option<u16>,
     #[serde(rename(serialize = "allow-lan", deserialize = "allow-lan"), skip_serializing_if = "Option::is_none")]
-    allow_lan: Option<bool>,
+    pub allow_lan: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    mode: Option<ConfigMode>,
+    pub mode: Option<ConfigMode>,
     #[serde(rename(serialize = "log-level", deserialize = "log-level"), skip_serializing_if = "Option::is_none")]
-    log_level: Option<ConfigLogLevel>,
+    pub log_level: Option<ConfigLogLevel>,
 }
 
 // pub struct LoadResult(StatusCode);
