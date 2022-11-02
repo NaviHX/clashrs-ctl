@@ -1,5 +1,5 @@
 use clap::{Args, Parser, Subcommand, ValueEnum};
-use clashrsctl_core::config::{ConfigLogLevel, ConfigMode};
+use clashrsctl::config::{ConfigLogLevel, ConfigMode};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

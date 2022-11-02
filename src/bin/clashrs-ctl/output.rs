@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 
 use async_trait::async_trait;
 
-use clashrsctl_core::{rule::{Rule, RuleList}, config::{Config, ConfigMode, ConfigLogLevel}, proxy::{ProxyInfo, ProxyList}};
+use clashrsctl::{rule::{Rule, RuleList}, config::{Config, ConfigMode, ConfigLogLevel}, proxy::{ProxyInfo, ProxyList}};
 
 pub trait CliOutput {
     fn print(&self);

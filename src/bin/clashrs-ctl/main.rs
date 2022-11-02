@@ -1,5 +1,5 @@
 use clap::Parser;
-use clashrsctl_core::{ClashRequestBuilder, ClashRequest};
+use clashrsctl::{ClashRequestBuilder, ClashRequest};
 use tokio;
 use crate::output::CliOutput;
 
@@ -81,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ProxyCommand::Delay { proxy, url, timeout } => {
                     use urlencoding::encode;
                     let encoded = encode(&url);
-                    let clashrsctl_core::proxy::ProxyDelay { delay } = client.get(&proxy).delay(&encoded, timeout).send().await?;
+                    let clashrsctl::proxy::ProxyDelay { delay } = client.get(&proxy).delay(&encoded, timeout).send().await?;
 
                     println!("{} ms", delay);
                 }
