@@ -13,6 +13,8 @@ pub struct ClashConfig {
     port: u16,
     secret: Option<String>,
 }
+
+// BUG: can get fake conf when authentication fail
 pub struct ClashConfigGet {
     ip: String,
     port: u16,
@@ -460,6 +462,7 @@ mod test {
         use crate::ClashRequestBuilder;
         let res = ClashRequestBuilder::new()
             .ip("127.0.0.1")
+            .secret("test")
             .port(9090)
             .config()
             .get()
@@ -477,6 +480,7 @@ mod test {
         ClashRequestBuilder::new()
             .ip("127.0.0.1")
             .port(9090)
+            .secret("test")
             .config()
             .load("./clash-profile.reload")
             .force()
@@ -493,6 +497,7 @@ mod test {
 
         ClashRequestBuilder::new()
             .ip("127.0.0.1")
+            .secret("test")
             .config()
             .patch()
             .port(9999)

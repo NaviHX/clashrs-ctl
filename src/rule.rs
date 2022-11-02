@@ -98,7 +98,7 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn test_get_rule() {
-        let req = ClashRequestBuilder::new().rule().send();
+        let req = ClashRequestBuilder::new().secret("test").rule().send();
         let rule_list = req.await.unwrap();
         println!("{:?}", rule_list);
     }

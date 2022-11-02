@@ -49,14 +49,19 @@ async fn get_request<'a, T>(request: T) -> Result<T::Response, Box<dyn std::erro
         T::Response: TryFrom<String>,
         <T::Response as TryFrom<String>>::Error: std::error::Error + 'a
 {
-    let c = Client::new()
+    let mut c = Client::new()
         .get(format!("http://{}:{}/{}?{}",
                      request.get_dest(),
                      request.get_port(),
                      request.get_path(),
                      request.get_query_parameter()))
-        .body(request.get_body().to_owned())
-        .send().await?
+        .body(request.get_body().to_owned());
+
+    if let Some(secret) = request.get_secret() {
+        c = c.header("Authorization", format!("Bearer {}", secret));
+    }
+
+    let c = c.send().await?
         .text().await?;
 
     match c.try_into() {
@@ -65,32 +70,54 @@ async fn get_request<'a, T>(request: T) -> Result<T::Response, Box<dyn std::erro
     }
 }
 
+async fn get_with_status_code_request<T>(request: T) -> Result<(reqwest::StatusCode, String), Box<dyn std::error::Error>>
+    where T: ClashRequest
+{
+    let mut c = Client::new()
+        .get(format!("http://{}:{}/{}?{}",
+                     request.get_dest(),
+                     request.get_port(),
+                     request.get_path(),
+                     request.get_query_parameter()))
+        .body(request.get_body().to_owned());
+    if let Some(secret) = request.get_secret() {
+        c = c.header("Authorization", format!("Bearer {}", secret));
+    }
+    let c = c.send().await?;
+    Ok((c.status(), c.text().await?))
+}
+
 async fn put_request<T>(request: T) -> Result<reqwest::StatusCode, Box<dyn std::error::Error>>
     where T: ClashRequest
 {
-    let c = Client::new()
+    let mut c = Client::new()
         .put(format!("http://{}:{}/{}?{}",
                      request.get_dest(),
                      request.get_port(),
                      request.get_path(),
                      request.get_query_parameter()))
-        .body(request.get_body().to_owned())
-        .send().await?
-        .status();
+        .body(request.get_body().to_owned());
+    if let Some(secret) = request.get_secret() {
+        c = c.header("Authorization", format!("Bearer {}", secret));
+    }
+    let c = c.send().await?.status();
     Ok(c)
 }
 
 async fn patch_request<T>(request: T) -> Result<reqwest::StatusCode, Box<dyn std::error::Error>>
     where T: ClashRequest
 {
-    let c = Client::new()
+    let mut c = Client::new()
         .patch(format!("http://{}:{}/{}?{}",
                      request.get_dest(),
                      request.get_port(),
                      request.get_path(),
                      request.get_query_parameter()))
-        .body(request.get_body().to_owned())
-        .send().await?
+        .body(request.get_body().to_owned());
+    if let Some(secret) = request.get_secret() {
+        c = c.header("Authorization", format!("Bearer {}", secret));
+    }
+    let c = c.send().await?
         .status();
     Ok(c)
 }

@@ -16,6 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = ClashRequestBuilder::new();
     if cli.server.is_some() { client = client.ip(&cli.server.unwrap()); }
     if cli.port.is_some() { client = client.port(cli.port.unwrap()); }
+    if cli.secret.is_some() { client = client.secret(&cli.secret.unwrap()); }
 
     use cli::Command;
     match cli.command {

@@ -4,7 +4,7 @@ use reqwest::StatusCode;
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map};
 
-use crate::ClashRequest;
+use crate::{ClashRequest, get_with_status_code_request};
 
 use super::{get_request, put_request};
 
@@ -222,23 +222,18 @@ impl ClashRequest for ClashProxyDelay {
     }
 
     async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
-        use reqwest::Client;
-        let c = Client::new()
-            .get(format!("http://{}:{}/{}?{}", self.ip, self.port, self.get_path(), self.get_query_parameter()))
-            .body(self.get_body())
-            .send()
-            .await?;
-        if c.status().is_success() {
-            let info = c.text().await?.try_into()?;
+        let (c, text) = get_with_status_code_request(self).await?;
+        if c.is_success() {
+            let info = text.try_into()?;
             Ok( info )
-        } else if c.status() == StatusCode::BAD_REQUEST {
+        } else if c == StatusCode::BAD_REQUEST {
             Err( Box::new(ProxyError::FormatError) )
-        } else if c.status() == StatusCode::REQUEST_TIMEOUT {
+        } else if c == StatusCode::REQUEST_TIMEOUT {
             Err( Box::new(ProxyError::TimeOut))
-        } else if c.status() == StatusCode::NOT_FOUND {
+        } else if c == StatusCode::NOT_FOUND {
             Err( Box::new(ProxyError::ProxyNotExisted))
         } else {
-            Err( Box::new(ProxyError::UnknownError(c.status().as_u16())))
+            Err( Box::new(ProxyError::UnknownError(c.as_u16())))
         }
     }
 }
@@ -318,14 +313,9 @@ impl ClashRequest for ClashProxyInfo {
     }
 
     async fn send(self) -> Result<Self::Response, Box<dyn Error>> {
-        use reqwest::Client;
-        let c = Client::new()
-            .get(format!("http://{}:{}/{}?{}", self.ip, self.port, self.get_path(), self.get_query_parameter()))
-            .body(self.get_body())
-            .send()
-            .await?;
-        if c.status().is_success() {
-            let info = c.text().await?.try_into()?;
+        let (c, text) = get_with_status_code_request(self).await?;
+        if c.is_success() {
+            let info = text.try_into()?;
             Ok( info )
         } else {
             Err( Box::new(ProxyError::ProxyNotExisted) )
@@ -357,6 +347,7 @@ mod test {
     async fn test_get_proxy_list() {
         use crate::ClashRequestBuilder;
         let c = ClashRequestBuilder::new()
+            .secret("test")
             .proxies()
             .send()
             .await
@@ -371,6 +362,7 @@ mod test {
     async fn test_get_proxy_info() {
         use crate::ClashRequestBuilder;
         let c = ClashRequestBuilder::new()
+            .secret("test")
             .proxies()
             .get("GLOBAL")
             .send()
@@ -384,23 +376,22 @@ mod test {
     async fn test_get_proxy_delay() {
         use crate::ClashRequestBuilder;
         use super::ProxyDelay;
-        let c = ClashRequestBuilder::new()
+        let _c = ClashRequestBuilder::new()
+            .secret("test")
             .proxies()
             .get("DIRECT")
             .delay("http%3A%2F%2Fbaidu.com", 1000)
             .send()
-            .await;
+            .await
+            .unwrap();
 
-        match c {
-            Ok( ProxyDelay{ delay } ) => println!("delay: {} ms", delay),
-            Err( error ) => println!("{}", error),
-        }
     }
 
     #[tokio::test]
     async fn test_change_proxy() {
         use crate::ClashRequestBuilder;
         ClashRequestBuilder::new()
+            .secret("test")
             .proxies()
             .get("GLOBAL")
             .change("DIRECT")
