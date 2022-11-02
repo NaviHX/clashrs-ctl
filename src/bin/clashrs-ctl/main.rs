@@ -51,6 +51,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
+        Command::Proxy(cli::Proxy{ command }) => {
+            use cli::ProxyCommand;
+
+            let client = client.proxies();
+            match command {
+                ProxyCommand::List => {
+                    let res = client.send().await?;
+
+                    // TODO: prettify output
+                    println!("{:?}", res);
+                }
+                ProxyCommand::Info { proxy } => {
+                    let res = client.get(&proxy).send().await?;
+
+                    // TODO: prettify output
+                    println!("{:?}", res);
+                }
+                ProxyCommand::Delay { proxy, url, timeout } => {
+                    use urlencoding::encode;
+                    let encoded = encode(&url);
+                    let clashrsctl_core::proxy::ProxyDelay { delay } = client.get(&proxy).delay(&encoded, timeout).send().await?;
+
+                    // TODO: prettify output
+                    println!("{} ms", delay);
+                }
+                ProxyCommand::Change { proxy, new_proxy } => {
+                    client.get(&proxy).change(&new_proxy).send().await?;
+                }
+            }
+        }
         _ => {
             println!("not supported now");
         }

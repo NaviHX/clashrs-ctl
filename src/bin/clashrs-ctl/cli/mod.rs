@@ -18,7 +18,7 @@ pub struct Cli {
 pub enum Command {
     Config(Config),
     Rules,
-    Proxy,
+    Proxy(Proxy),
     Log,
     Traffic,
 }
@@ -26,6 +26,29 @@ pub enum Command {
 #[derive(Args, Debug)]
 pub struct Server {
     addr: String,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct Proxy{
+    #[command(subcommand)]
+    pub command: ProxyCommand,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum ProxyCommand {
+    List,
+    Delay {
+        proxy: String,
+        url: String,
+        timeout: u32,
+    },
+    Info {
+        proxy: String,
+    },
+    Change {
+        proxy: String,
+        new_proxy: String,
+    },
 }
 
 #[derive(Args, Debug, Clone)]

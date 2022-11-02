@@ -42,11 +42,12 @@ pub struct ClashProxy {
     secret: Option<String>,
 }
 
+// HACK: proxy info may not include all of these information
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProxyInfo {
-    all: Vec<String>,
-    now: String,
-    r#type: String,
+    all: Option< Vec<String> >,
+    now: Option< String >,
+    r#type: Option< String >,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -244,7 +245,7 @@ impl ClashRequest for ClashProxyDelay {
 
 #[derive(Deserialize, Serialize)]
 pub struct ProxyDelay {
-    delay: u64,
+    pub delay: u64,
 }
 
 #[async_trait]
