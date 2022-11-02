@@ -74,6 +74,16 @@ pub struct Config {
     pub mode: Option<ConfigMode>,
     #[serde(rename(serialize = "log-level", deserialize = "log-level"), skip_serializing_if = "Option::is_none")]
     pub log_level: Option<ConfigLogLevel>,
+
+    #[serde(rename(serialize = "tproxy-port", deserialize = "tproxy-port"), skip_serializing_if = "Option::is_none")]
+    pub tproxy_port: Option<u16>,
+    #[serde(rename(serialize = "bind-address", deserialize = "bind-address"), skip_serializing_if = "Option::is_none")]
+    pub bind_address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ipv6: Option<bool>,
+
+    // BUG: Don't know what this field exists for
+    // authentication: Vec<?>,
 }
 
 // pub struct LoadResult(StatusCode);
@@ -268,8 +278,24 @@ impl Config {
             allow_lan: None,
             mode: None,
             log_level: None,
+            tproxy_port: None,
+            bind_address: None,
+            ipv6: None,
         }
     }
+
+    pub fn tproxy_port(self, port: u16) -> Self {
+        Self { tproxy_port: Some(port), ..self }
+    }
+
+    pub fn bind_address(self, address: &str) -> Self {
+        Self { bind_address: Some(address.to_owned()), ..self }
+    }
+
+    pub fn ipv6(self, flag: bool) -> Self {
+        Self { ipv6: Some(flag), ..self }
+    }
+
     pub fn port(self, port: u16) -> Self {
         Self {
             port: Some(port),
@@ -313,6 +339,17 @@ impl Config {
     }
 }
 impl ClashConfigPatch {
+    pub fn tproxy_port(self, port: u16) -> Self {
+        Self { config: self.config.tproxy_port(port), ..self }
+    }
+
+    pub fn bind_address(self, address: &str) -> Self {
+        Self { config: self.config.bind_address(address), ..self }
+    }
+
+    pub fn ipv6(self, flag: bool) -> Self {
+        Self { config: self.config.ipv6(flag), ..self }
+    }
     pub fn port(self, port: u16) -> Self {
         Self {
             config: self.config.port(port),
@@ -451,6 +488,8 @@ mod test {
             .redir_port(8888)
             .socks_port(7777)
             .allow_lan(true)
+            .ipv6(false)
+            .tproxy_port(6666)
             .mode(ConfigMode::Global)
             .log_level(ConfigLogLevel::Debug)
             .send()

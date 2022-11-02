@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use async_trait::async_trait;
 
 use clashrsctl_core::{rule::{Rule, RuleList}, config::{Config, ConfigMode, ConfigLogLevel}, proxy::{ProxyInfo, ProxyList}};
@@ -31,7 +33,10 @@ impl CliOutput for Config {
         println!("HTTP port: {}", self.port.as_ref().unwrap_or_else(|| &0));
         println!("SOCKS port: {}", self.socks_port.as_ref().unwrap_or_else(|| &0));
         println!("REDIR port: {}", self.redir_port.as_ref().unwrap_or_else(|| &0));
+        println!("TPROXY port: {}", self.tproxy_port.as_ref().unwrap_or_else(|| &0));
         println!("Allow LAN: {}", self.allow_lan.as_ref().unwrap_or_else(|| &false));
+        println!("IPv6: {}", self.ipv6.as_ref().unwrap_or_else(|| &false));
+        println!("Bind Address: {}", self.bind_address.as_ref().map(|s| s.borrow()).unwrap_or_else(|| "*"));
         println!("Mode: {}", self.mode.as_ref().map(|mode| match mode {
             ConfigMode::Global => "Global",
             ConfigMode::Rule => "Rule",

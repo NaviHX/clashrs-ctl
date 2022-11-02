@@ -71,6 +71,12 @@ pub enum ConfigCommand {
         #[arg(short, long)]
         redir_port: Option<u16>,
         #[arg(short, long)]
+        tproxy_port: Option<u16>,
+        #[arg(short, long)]
+        ipv6: Option<bool>,
+        #[arg(short, long)]
+        bind_address: Option<String>,
+        #[arg(short, long)]
         allow_lan: Option<bool>,
         #[arg(value_enum, short, long)]
         mode: Option<ConfigMode>,
