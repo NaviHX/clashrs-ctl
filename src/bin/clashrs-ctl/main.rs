@@ -41,13 +41,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ConfigCommand::Load { path } => {
                     client.load(&path).send().await?
                 }
-                ConfigCommand::Patch { port, socks_port, redir_port, tproxy_port, ipv6, bind_address, allow_lan, mode, log_level } => {
+                ConfigCommand::Patch { port, socks_port, redir_port, tproxy_port, mixed_port, ipv6, bind_address, allow_lan, mode, log_level } => {
                     let mut client = client.patch();
 
                     if let Some(port) = port { client = client.port(port) }
                     if let Some(socks_port) = socks_port { client = client.socks_port(socks_port) }
                     if let Some(redir_port) = redir_port { client = client.redir_port(redir_port) }
                     if let Some(tproxy_port) = tproxy_port { client = client.tproxy_port(tproxy_port) }
+                    if let Some(mixed_port) = mixed_port { client = client.mixed_port(mixed_port) }
                     if let Some(ipv6) = ipv6 { client = client.ipv6(ipv6) }
                     if let Some(address) = bind_address { client = client.bind_address(&address) }
                     if let Some(allow_lan) = allow_lan { client = client.allow_lan(allow_lan) }

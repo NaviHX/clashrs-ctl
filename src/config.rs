@@ -77,6 +77,8 @@ pub struct Config {
 
     #[serde(rename(serialize = "tproxy-port", deserialize = "tproxy-port"), skip_serializing_if = "Option::is_none")]
     pub tproxy_port: Option<u16>,
+    #[serde(rename(serialize = "mixed-port", deserialize = "mixed-port"), skip_serializing_if = "Option::is_none")]
+    pub mixed_port: Option<u16>,
     #[serde(rename(serialize = "bind-address", deserialize = "bind-address"), skip_serializing_if = "Option::is_none")]
     pub bind_address: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -279,6 +281,7 @@ impl Config {
             mode: None,
             log_level: None,
             tproxy_port: None,
+            mixed_port: None,
             bind_address: None,
             ipv6: None,
         }
@@ -286,6 +289,10 @@ impl Config {
 
     pub fn tproxy_port(self, port: u16) -> Self {
         Self { tproxy_port: Some(port), ..self }
+    }
+
+    pub fn mixed_port(self, port: u16) -> Self {
+        Self { mixed_port: Some(port), ..self }
     }
 
     pub fn bind_address(self, address: &str) -> Self {
@@ -341,6 +348,10 @@ impl Config {
 impl ClashConfigPatch {
     pub fn tproxy_port(self, port: u16) -> Self {
         Self { config: self.config.tproxy_port(port), ..self }
+    }
+
+    pub fn mixed_port(self, port: u16) -> Self {
+        Self { config: self.config.mixed_port(port), ..self }
     }
 
     pub fn bind_address(self, address: &str) -> Self {

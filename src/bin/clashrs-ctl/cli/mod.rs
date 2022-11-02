@@ -88,6 +88,8 @@ pub enum ConfigCommand {
         #[arg(short, long)]
         tproxy_port: Option<u16>,
         #[arg(short, long)]
+        mixed_port: Option<u16>,
+        #[arg(short, long)]
         ipv6: Option<bool>,
         #[arg(short, long)]
         bind_address: Option<String>,

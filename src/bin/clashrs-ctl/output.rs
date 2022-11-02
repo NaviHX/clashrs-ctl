@@ -34,6 +34,7 @@ impl CliOutput for Config {
         println!("SOCKS port: {}", self.socks_port.as_ref().unwrap_or_else(|| &0));
         println!("REDIR port: {}", self.redir_port.as_ref().unwrap_or_else(|| &0));
         println!("TPROXY port: {}", self.tproxy_port.as_ref().unwrap_or_else(|| &0));
+        println!("MIXED port: {}", self.mixed_port.as_ref().unwrap_or_else(|| &0));
         println!("Allow LAN: {}", self.allow_lan.as_ref().unwrap_or_else(|| &false));
         println!("IPv6: {}", self.ipv6.as_ref().unwrap_or_else(|| &false));
         println!("Bind Address: {}", self.bind_address.as_ref().map(|s| s.borrow()).unwrap_or_else(|| "*"));
