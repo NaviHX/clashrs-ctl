@@ -4,13 +4,17 @@ use clashrsctl::config::{ConfigLogLevel, ConfigMode};
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    #[arg(short, long)]
+    #[arg(short = 'a', long = "addr")]
     /// IP address or domain name the clash controller is listening
     pub server: Option<String>,
 
     #[arg(short, long)]
     /// The port which the clash controller is listening
     pub port: Option<u16>,
+
+    #[arg(short, long)]
+    /// authentication secret
+    pub secret: Option<String>,
 
     #[command(subcommand)]
     pub command: Command,
