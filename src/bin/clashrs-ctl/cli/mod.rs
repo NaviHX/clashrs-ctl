@@ -99,7 +99,7 @@ pub enum ConfigCommand {
         bind_address: Option<String>,
         #[arg(short, long)]
         allow_lan: Option<bool>,
-        #[arg(value_enum, short, long)]
+        #[arg(value_enum, long)]
         mode: Option<ConfigMode>,
         #[arg(value_enum, short, long)]
         log_level: Option<ConfigLogLevel>,
