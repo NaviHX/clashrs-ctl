@@ -32,6 +32,8 @@ pub enum Command {
     /// Print the traffic.
     /// NOT supported now
     Traffic,
+    /// Print the version of the clash core
+    Version,
 }
 
 #[derive(Args, Debug)]

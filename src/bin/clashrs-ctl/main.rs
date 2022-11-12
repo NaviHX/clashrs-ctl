@@ -91,6 +91,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
+        Command::Version => {
+            let version = client.version()
+                .send()
+                .await?;
+
+            println!("{}", version.version);
+        }
         _ => {
             println!("not supported now");
         }

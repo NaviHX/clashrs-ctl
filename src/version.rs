@@ -13,7 +13,7 @@ pub struct ClashVersion {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Version {
-    version: String,
+    pub version: String,
 }
 
 impl TryFrom<String> for Version {
