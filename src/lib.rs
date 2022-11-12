@@ -1,6 +1,7 @@
 pub mod config;
 pub mod proxy;
 pub mod rule;
+pub mod version;
 
 use async_trait::async_trait;
 use rule::{ClashRule, RuleList};
@@ -42,6 +43,7 @@ pub trait ClashRequest {
 }
 
 use reqwest::Client;
+use version::ClashVersion;
 
 async fn get_request<'a, T>(request: T) -> Result<T::Response, Box<dyn std::error::Error + 'a>>
     where T: ClashRequest,
@@ -167,6 +169,7 @@ impl ClashRequestBuilder {
     }
 
     request_builders![
+        version, ClashVersion;
         proxies, ClashProxy;
         config, ClashConfig;
         rule, ClashRule
