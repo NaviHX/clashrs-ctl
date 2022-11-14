@@ -6,8 +6,8 @@ a simple tool to manage clash
 
 |uri|method|description|status|
 |---|---|---|---|
-|`/trafic`|`GET`|get current traffic|WIP|
-|`/logs`|`GET`|get real time logs|WIP|
+|`/trafic`|`GET`|get current traffic|o|
+|`/logs`|`GET`|get real time logs|o|
 |`/proxies`|`GET`|get the list of proxies|o|
 |`/proxies/:name`|`GET`|get the information of proxy `name`|o|
 |`/proxies/:name/delay`|`GET`|get the delay of proxy `name`|o|
@@ -28,9 +28,9 @@ a simple tool to manage clash
 1. `rules` api support: o
 2. `configs` api support: o
 3. `proxies` api support: o
-4. `logs` api support: x
-5. `trafic` api support: x
+4. `logs` api support: o
+5. `trafic` api support: o
 6. CLI: WIP
-7. `version` api support: x
+7. `version` api support: o
 8. `connection` api support: x
 
