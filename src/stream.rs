@@ -87,13 +87,18 @@ impl<T: std::marker::Unpin + for<'a> Deserialize<'a>> ClashStream<T> {
 }
 
 async fn get_stream_request(request: impl ClashRequest) -> Result< Pin<Box<dyn Stream<Item = reqwest::Result<Bytes>>>>, Box<dyn std::error::Error> > {
-    let c = Client::new()
+    let mut c = Client::new()
         .get(format!("http://{}:{}/{}?{}",
                      request.get_dest(),
                      request.get_port(),
                      request.get_path(),
                      request.get_query_parameter()))
-        .send()
+        .body(request.get_body());
+    if let Some(secret) = request.get_secret() {
+        c = c.header("Authorization", format!("Bearer {}", secret));
+    }
+
+    let c = c.send()
         .await?
         .bytes_stream();
 
