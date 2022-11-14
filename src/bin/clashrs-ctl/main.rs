@@ -2,6 +2,7 @@ use clap::Parser;
 use clashrsctl::{ClashRequestBuilder, ClashRequest};
 use tokio;
 use crate::output::CliOutput;
+use futures::StreamExt;
 
 mod cli;
 mod output;
@@ -97,6 +98,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .await?;
 
             println!("{}", version.version);
+        }
+        Command::Traffic => {
+            let mut traffic_stream = client.traffic().send().await?;
+
+            while let Some(res) = traffic_stream.next().await {
+                res?.print();
+            }
+
+            println!("Disconnected");
         }
         _ => {
             println!("not supported now");

@@ -30,7 +30,6 @@ pub enum Command {
     /// NOT supported now
     Log,
     /// Print the traffic.
-    /// NOT supported now
     Traffic,
     /// Print the version of the clash core
     Version,
