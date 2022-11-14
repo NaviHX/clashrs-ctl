@@ -2,11 +2,13 @@ pub mod config;
 pub mod proxy;
 pub mod rule;
 pub mod version;
+pub mod stream;
 
 use async_trait::async_trait;
 use rule::{ClashRule, RuleList};
 use config::{ClashConfig, ClashConfigGet};
 use proxy::{ClashProxy};
+use stream::{traffic::ClashTraffic, log::ClashLog};
 use tokio;
 
 macro_rules! fn_to_specified_request {
@@ -169,6 +171,8 @@ impl ClashRequestBuilder {
     }
 
     request_builders![
+        logs, ClashLog;
+        traffic, ClashTraffic;
         version, ClashVersion;
         proxies, ClashProxy;
         config, ClashConfig;
