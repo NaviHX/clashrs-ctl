@@ -108,6 +108,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             println!("Disconnected");
         }
+        Command::Log => {
+            let mut log_stream = client.logs().send().await?;
+
+            while let Some(res) = log_stream.next().await {
+                res?.print();
+            }
+
+            println!("Disconnected");
+        }
         _ => {
             println!("not supported now");
         }

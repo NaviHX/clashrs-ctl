@@ -27,7 +27,7 @@ pub enum Command {
     Rules,
     Proxy(Proxy),
     /// Print realtime log.
-    /// NOT supported now
+    /// TODO: Log level not supported now.
     Log,
     /// Print the traffic.
     Traffic,
