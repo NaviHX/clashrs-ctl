@@ -7,8 +7,8 @@ use super::ClashStream;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Log {
-    r#type: ConfigLogLevel,
-    payload: String,
+    pub r#type: ConfigLogLevel,
+    pub payload: String,
 }
 
 pub struct ClashLog {

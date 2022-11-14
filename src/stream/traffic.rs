@@ -7,8 +7,8 @@ use super::ClashStream;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Traffic {
-    up: usize,
-    down: usize,
+    pub up: usize,
+    pub down: usize,
 }
 
 pub struct ClashTraffic {

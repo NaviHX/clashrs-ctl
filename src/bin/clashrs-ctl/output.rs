@@ -1,16 +1,15 @@
 use std::borrow::Borrow;
 
-use async_trait::async_trait;
-
-use clashrsctl::{rule::{Rule, RuleList}, config::{Config, ConfigMode, ConfigLogLevel}, proxy::{ProxyInfo, ProxyList}};
+use clashrsctl::{
+    config::{Config, ConfigLogLevel, ConfigMode},
+    proxy::{ProxyInfo, ProxyList},
+    rule::{Rule, RuleList},
+    stream::log::Log,
+    stream::traffic::Traffic,
+};
 
 pub trait CliOutput {
     fn print(&self);
-}
-
-#[async_trait]
-pub trait StreamOutput {
-    async fn print(self);
 }
 
 impl CliOutput for Rule {
@@ -31,24 +30,57 @@ impl CliOutput for RuleList {
 impl CliOutput for Config {
     fn print(&self) {
         println!("HTTP port: {}", self.port.as_ref().unwrap_or_else(|| &0));
-        println!("SOCKS port: {}", self.socks_port.as_ref().unwrap_or_else(|| &0));
-        println!("REDIR port: {}", self.redir_port.as_ref().unwrap_or_else(|| &0));
-        println!("TPROXY port: {}", self.tproxy_port.as_ref().unwrap_or_else(|| &0));
-        println!("MIXED port: {}", self.mixed_port.as_ref().unwrap_or_else(|| &0));
-        println!("Allow LAN: {}", self.allow_lan.as_ref().unwrap_or_else(|| &false));
+        println!(
+            "SOCKS port: {}",
+            self.socks_port.as_ref().unwrap_or_else(|| &0)
+        );
+        println!(
+            "REDIR port: {}",
+            self.redir_port.as_ref().unwrap_or_else(|| &0)
+        );
+        println!(
+            "TPROXY port: {}",
+            self.tproxy_port.as_ref().unwrap_or_else(|| &0)
+        );
+        println!(
+            "MIXED port: {}",
+            self.mixed_port.as_ref().unwrap_or_else(|| &0)
+        );
+        println!(
+            "Allow LAN: {}",
+            self.allow_lan.as_ref().unwrap_or_else(|| &false)
+        );
         println!("IPv6: {}", self.ipv6.as_ref().unwrap_or_else(|| &false));
-        println!("Bind Address: {}", self.bind_address.as_ref().map(|s| s.borrow()).unwrap_or_else(|| "*"));
-        println!("Mode: {}", self.mode.as_ref().map(|mode| match mode {
-            ConfigMode::Global => "Global",
-            ConfigMode::Rule => "Rule",
-            ConfigMode::Direct => "Direct",
-        }).unwrap_or_else(|| "None"));
-        println!("Log level: {}", self.log_level.as_ref().map(|level| match level {
-            ConfigLogLevel::Info => "Info",
-            ConfigLogLevel::Warning => "Warning",
-            ConfigLogLevel::Error => "Error",
-            ConfigLogLevel::Debug => "Debug",
-        }).unwrap_or_else(|| "None"));
+        println!(
+            "Bind Address: {}",
+            self.bind_address
+                .as_ref()
+                .map(|s| s.borrow())
+                .unwrap_or_else(|| "*")
+        );
+        println!(
+            "Mode: {}",
+            self.mode
+                .as_ref()
+                .map(|mode| match mode {
+                    ConfigMode::Global => "Global",
+                    ConfigMode::Rule => "Rule",
+                    ConfigMode::Direct => "Direct",
+                })
+                .unwrap_or_else(|| "None")
+        );
+        println!(
+            "Log level: {}",
+            self.log_level
+                .as_ref()
+                .map(|level| match level {
+                    ConfigLogLevel::Info => "Info",
+                    ConfigLogLevel::Warning => "Warning",
+                    ConfigLogLevel::Error => "Error",
+                    ConfigLogLevel::Debug => "Debug",
+                })
+                .unwrap_or_else(|| "None")
+        );
     }
 }
 
@@ -79,3 +111,21 @@ impl CliOutput for ProxyList {
     }
 }
 
+impl CliOutput for Traffic {
+    fn print(&self) {
+        println!("up:{}, down:{}", self.up, self.down);
+    }
+}
+
+impl CliOutput for Log {
+    fn print(&self) {
+        println!("[{}]: {}",
+                 match self.r#type{
+                     ConfigLogLevel::Info => "INFO",
+                     ConfigLogLevel::Warning => "WARN",
+                     ConfigLogLevel::Error => "ERROR",
+                     ConfigLogLevel::Debug => "DEBUG"
+                 },
+                 self.payload);
+    }
+}
