@@ -1,5 +1,6 @@
 use crate::{ClashRequest, ClashRequestBuilder};
 use serde::{Serialize, Deserialize};
+use async_trait::async_trait;
 
 pub struct ClashConnections {
     ip: String,
@@ -84,5 +85,155 @@ pub struct ConnectionVec {
     #[serde(rename(serialize = "uploadTotal", deserialize = "uploadTotal"))]
     upload_total: usize,
     connections: Vec<Connection>,
+}
+
+impl TryFrom<String> for ConnectionVec {
+    type Error = serde_json::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        serde_json::from_str(&value)
+    }
+}
+
+#[async_trait]
+impl ClashRequest for ClashConnections {
+    type Response = ConnectionVec;
+
+    fn get_dest(&self) -> String {
+        self.ip.clone()
+    }
+
+    fn get_port(&self) -> u16 {
+        self.port
+    }
+
+    fn get_secret(&self) -> Option<String>  {
+        self.secret.clone()
+    }
+
+    fn get_method(&self) -> String {
+        "GET".to_owned()
+    }
+
+    fn get_path(&self) -> String {
+        "connections".to_owned()
+    }
+
+    fn get_query_parameter(&self) -> String {
+        "".to_owned()
+    }
+
+    fn get_body(&self) -> String {
+        "".to_owned()
+    }
+
+    async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
+        use crate::get_request;
+
+        get_request(self).await
+    }
+}
+
+#[async_trait]
+impl ClashRequest for ClashCloseConnections {
+    type Response = ();
+
+    fn get_dest(&self) -> String {
+        self.ip.clone()
+    }
+
+    fn get_port(&self) -> u16 {
+        self.port
+    }
+
+    fn get_secret(&self) -> Option<String>  {
+        self.secret.clone()
+    }
+
+    fn get_method(&self) -> String {
+        "DELETE".to_owned()
+    }
+
+    fn get_path(&self) -> String {
+        "conntections".to_owned()
+    }
+
+    fn get_query_parameter(&self) -> String {
+        "".to_owned()
+    }
+
+    fn get_body(&self) -> String {
+        "".to_owned()
+    }
+
+    async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
+        use crate::get_with_status_code_request;
+
+        let _code = get_with_status_code_request(self).await?;
+
+        // HACK: The official doc says nothing about the return of this request
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ClashRequest for ClashCloseID {
+    type Response = ();
+
+    fn get_dest(&self) -> String {
+        self.ip.clone()
+    }
+
+    fn get_port(&self) -> u16 {
+        self.port
+    }
+
+    fn get_secret(&self) -> Option<String>  {
+        self.secret.clone()
+    }
+
+    fn get_method(&self) -> String {
+        "DELETE".to_owned()
+    }
+
+    fn get_path(&self) -> String {
+        format!("connections/{}", self.id)
+    }
+
+    fn get_query_parameter(&self) -> String {
+        "".to_owned()
+    }
+
+    fn get_body(&self) -> String {
+        "".to_owned()
+    }
+
+    async fn send(self) -> Result<Self::Response, Box<dyn std::error::Error>> {
+        use crate::get_with_status_code_request;
+
+        let _code = get_with_status_code_request(self).await?;
+
+        // HACK: The official doc says nothing about the return of this request
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::ClashRequest;
+
+    #[tokio::test]
+    async fn test_get_connection_info() {
+        use crate::ClashRequestBuilder;
+
+        let connections_info = ClashRequestBuilder::new()
+            .secret("test")
+            .connections()
+            .send()
+            .await
+            .unwrap();
+
+        println!("{:?}", connections_info);
+    }
 }
 
