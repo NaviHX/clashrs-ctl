@@ -5,7 +5,7 @@ use clashrsctl::{
     proxy::{ProxyInfo, ProxyList},
     rule::{Rule, RuleList},
     stream::log::Log,
-    stream::traffic::Traffic,
+    stream::traffic::Traffic, connection::{ConnectionVec, Connection},
 };
 
 pub trait CliOutput {
@@ -127,5 +127,23 @@ impl CliOutput for Log {
                      ConfigLogLevel::Debug => "DEBUG"
                  },
                  self.payload);
+    }
+}
+
+impl CliOutput for ConnectionVec {
+    fn print(&self) {
+        println!("Total upload: {}", self.upload_total);
+        println!("Total download: {}", self.download_total);
+
+        println!("ID\tType");
+        for connection in self.connections.iter() {
+            <Connection as CliOutput>::print(&connection);
+        }
+    }
+}
+
+impl CliOutput for Connection {
+    fn print(&self) {
+        println!("{}\t{}", self.id, self.metadata.r#type);
     }
 }

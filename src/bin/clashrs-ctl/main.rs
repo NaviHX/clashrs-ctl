@@ -117,8 +117,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             println!("Disconnected");
         }
-        _ => {
-            println!("not supported now");
+        Command::Connection(cli::Connection { command}) => {
+            use cli::ConnectionCommand;
+            match command {
+                ConnectionCommand::List => client.connections().send().await?.print(),
+                ConnectionCommand::CloseAll => client.connections().close().send().await?,
+                ConnectionCommand::Close { id } => client.connections().close_id(&id).send().await?,
+            }
         }
     }
 

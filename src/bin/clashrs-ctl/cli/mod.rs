@@ -33,6 +33,23 @@ pub enum Command {
     Traffic,
     /// Print the version of the clash core
     Version,
+    /// Connection control
+    Connection(Connection),
+}
+
+#[derive(Args, Debug)]
+pub struct Connection {
+    #[command(subcommand)]
+    pub command: ConnectionCommand,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum ConnectionCommand {
+    List,
+    CloseAll,
+    Close {
+        id: String,
+    }
 }
 
 #[derive(Args, Debug)]

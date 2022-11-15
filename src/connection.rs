@@ -48,43 +48,43 @@ impl ClashConnections {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Connection {
-    id: String,
-    chains: Vec<String>,
-    rule: String,
+    pub id: String,
+    pub chains: Vec<String>,
+    pub rule: String,
     #[serde(rename(serialize = "rulePayload", deserialize = "rulePayload"))]
-    rule_payload: String,
-    upload: usize,
-    download: usize,
+    pub rule_payload: String,
+    pub upload: usize,
+    pub download: usize,
     start: String,
-    metadata: Metadata,
+    pub metadata: Metadata,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Metadata {
-    network: String,
-    r#type: String,
+    pub network: String,
+    pub r#type: String,
     #[serde(rename(serialize = "sourceIP", deserialize = "sourceIP"))]
-    source_ip: String,
+    pub source_ip: String,
     #[serde(rename(serialize = "destinationIP", deserialize = "destinationIP"))]
-    destination_ip: String,
+    pub destination_ip: String,
     #[serde(rename(serialize = "sourcePort", deserialize = "sourcePort"))]
-    source_port: String,
+    pub source_port: String,
     #[serde(rename(serialize = "destinationPort", deserialize = "destinationPort"))]
-    destination_port: String,
-    host: String,
+    pub destination_port: String,
+    pub host: String,
     #[serde(rename(serialize = "dnsMode", deserialize = "dnsMode"))]
-    dns_mode: String,
+    pub dns_mode: String,
     #[serde(rename(serialize = "processPath", deserialize = "processPath"))]
-    process_path: String,
+    pub process_path: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConnectionVec {
     #[serde(rename(serialize = "downloadTotoal", deserialize = "downloadTotal"))]
-    download_total: usize,
+    pub download_total: usize,
     #[serde(rename(serialize = "uploadTotal", deserialize = "uploadTotal"))]
-    upload_total: usize,
-    connections: Vec<Connection>,
+    pub upload_total: usize,
+    pub connections: Vec<Connection>,
 }
 
 impl TryFrom<String> for ConnectionVec {
