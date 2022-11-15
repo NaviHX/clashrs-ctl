@@ -16,10 +16,10 @@ a simple tool to manage clash
 |`/configs`|`PATCH`|change the configuration incrementally|o|
 |`/configs`|`PUT`|reload the configuration|o|
 |`/rules`|`GET`|get the rules|o|
-|`/version`|`GET`|get the version of clash core|x|
-|`/connections`|`GET`|get the connection information|x|
-|`/connections/`|`DELETE`|close all connections|x|
-|`/connections/:id`|`DELETE`|close specific connections|x|
+|`/version`|`GET`|get the version of clash core|o|
+|`/connections`|`GET`|get the connection information|o|
+|`/connections/`|`DELETE`|close all connections|o|
+|`/connections/:id`|`DELETE`|close specific connections|o|
 
 `Provider` APIs won't be put in consideration in the short term.
 
@@ -30,7 +30,7 @@ a simple tool to manage clash
 3. `proxies` api support: o
 4. `logs` api support: o
 5. `trafic` api support: o
-6. CLI: WIP
+6. CLI: o
 7. `version` api support: o
-8. `connection` api support: x
+8. `connection` api support: o
 
