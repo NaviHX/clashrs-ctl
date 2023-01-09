@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use reqwest::StatusCode;
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, Map};
+use urlencoding::encode;
 
 use crate::{ClashRequest, get_with_status_code_request};
 
@@ -105,13 +106,15 @@ pub struct ClashProxyInfo {
 
 impl ClashProxyInfo {
     pub fn delay(self, url: &str, timeout: u32) -> ClashProxyDelay {
+        let url = encode(url).to_string();
+
         ClashProxyDelay {
             ip: self.ip,
             port: self.port,
             secret: self.secret,
             proxy_name: self.proxy_name,
 
-            url: url.to_owned(),
+            url,
             timeout,
         }
     }
@@ -379,7 +382,7 @@ mod test {
             .secret("test")
             .proxies()
             .get("DIRECT")
-            .delay("http%3A%2F%2Fbaidu.com", 1000)
+            .delay("http://baidu.com", 500)
             .send()
             .await
             .unwrap();

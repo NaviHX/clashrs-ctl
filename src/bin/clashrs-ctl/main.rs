@@ -81,9 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     res.print()
                 }
                 ProxyCommand::Delay { proxy, url, timeout } => {
-                    use urlencoding::encode;
-                    let encoded = encode(&url);
-                    let clashrsctl::proxy::ProxyDelay { delay } = client.get(&proxy).delay(&encoded, timeout).send().await?;
+                    let clashrsctl::proxy::ProxyDelay { delay } = client.get(&proxy).delay(&url, timeout).send().await?;
 
                     println!("{} ms", delay);
                 }
