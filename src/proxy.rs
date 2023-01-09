@@ -231,7 +231,7 @@ impl ClashRequest for ClashProxyDelay {
             Ok( info )
         } else if c == StatusCode::BAD_REQUEST {
             Err( Box::new(ProxyError::FormatError) )
-        } else if c == StatusCode::REQUEST_TIMEOUT {
+        } else if c == StatusCode::REQUEST_TIMEOUT || c == StatusCode::GATEWAY_TIMEOUT{
             Err( Box::new(ProxyError::TimeOut))
         } else if c == StatusCode::NOT_FOUND {
             Err( Box::new(ProxyError::ProxyNotExisted))
