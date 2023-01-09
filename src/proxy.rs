@@ -375,7 +375,6 @@ mod test {
     #[tokio::test]
     async fn test_get_proxy_delay() {
         use crate::ClashRequestBuilder;
-        use super::ProxyDelay;
         let _c = ClashRequestBuilder::new()
             .secret("test")
             .proxies()

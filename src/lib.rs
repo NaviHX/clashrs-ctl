@@ -6,12 +6,11 @@ pub mod connection;
 pub mod stream;
 
 use async_trait::async_trait;
-use rule::{ClashRule, RuleList};
-use config::{ClashConfig, ClashConfigGet};
-use proxy::{ClashProxy};
+use rule::ClashRule;
+use config::ClashConfig;
+use proxy::ClashProxy;
 use stream::{traffic::ClashTraffic, log::ClashLog};
 use connection::ClashConnections;
-use tokio;
 
 macro_rules! fn_to_specified_request {
     ($func:ident, $to:ident) => {

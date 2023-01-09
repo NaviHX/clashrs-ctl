@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, path::PathBuf};
+use std::path::PathBuf;
 
 use crate::ClashRequestBuilder;
 use async_trait::async_trait;
@@ -455,7 +455,7 @@ impl ClashRequest for ClashConfigPatch {
 
 #[cfg(test)]
 mod test {
-    use crate::{ClashRequest, config::Config};
+    use crate::ClashRequest;
 
     #[tokio::test]
     async fn test_get_config() {

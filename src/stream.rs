@@ -4,7 +4,7 @@ pub mod log;
 use std::{collections::VecDeque, marker::PhantomData, pin::Pin};
 
 use bytes::Bytes;
-use futures::{Stream, StreamExt};
+use futures::Stream;
 use serde::Deserialize;
 use std::marker::Unpin;
 use reqwest::Client;
